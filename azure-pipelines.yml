@@ -31,4 +31,5 @@ stages:
           inputs:
             targetType: inline
             script: |
-              docker build -t shoaib1999/fake-user-service:$(Build.BuildId) --build-arg "TAG=18-alpine" ./user-service -f ./Dockerfile
+              cp ./Dockerfile ./user-service
+              docker build -t shoaib1999/fake-user-service:$(Build.BuildId) --build-arg "TAG=18-alpine" ./user-service
