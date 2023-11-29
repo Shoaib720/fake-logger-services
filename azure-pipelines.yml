@@ -33,3 +33,22 @@ stages:
             script: |
               cp ./Dockerfile ./user-service
               docker build -t shoaib1999/fake-user-service:$(Build.BuildId) --build-arg "TAG=18-alpine" ./user-service
+      - job: Scan
+        displayName: Image Security Scan
+        dependsOn: Build
+        steps:
+          - task: Bash@3
+            displayName: Install Trivy
+            inputs:
+              targetType: inline
+              script: |
+                wget https://github.com/aquasecurity/trivy/releases/download/v0.20.2/trivy_0.20.2_Linux-64bit.deb
+                sudo dpkg -i trivy_0.20.2_Linux-64bit.deb
+                trivy -v
+          - task: Bash@3
+            displayName: Scan image
+            inputs:
+              targetType: inline
+              script: |
+                trivy i shoaib1999/fake-user-service:$(Build.BuildId)
+              
