@@ -51,7 +51,7 @@ stages:
         - task: Docker@2
           inputs:
             containerRegistry: 'shoaib-personal-dockerhub-con'
-            repository: 'fake-user-service'
+            repository: 'shoaib1999/fake-user-service'
             command: 'push'
             tags: |
               $(Build.BuildId)
