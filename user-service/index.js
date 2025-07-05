@@ -1,27 +1,75 @@
-const {faker} = require('@faker-js/faker')
+const { faker } = require('@faker-js/faker');
 const moment = require('moment');
 
-setInterval(() => {
-  const action = faker.helpers.arrayElement(['registered', 'logged in', 'logged out', 'profile updated']);
-  const userID = faker.string.uuid();
-  const userName = faker.internet.userName();
-  const userEmail = faker.internet.email();
-  const timestamp = moment().toISOString();
+// Weighted log levels
+function getRandomLogLevel() {
+  const levels = ['INFO', 'DEBUG', 'WARN', 'ERROR', 'FATAL'];
+  const weights = [0.7, 0.1, 0.1, 0.07, 0.03];
+  const total = weights.reduce((a, b) => a + b, 0);
+  const threshold = Math.random() * total;
 
-  const logMessage = `${timestamp} [User Service] User ${userID} ${action}. Username: ${userName}, Email: ${userEmail}`;
-  console.log(logMessage);
-}, 500);
+  let cumulative = 0;
+  for (let i = 0; i < levels.length; i++) {
+    cumulative += weights[i];
+    if (threshold < cumulative) return levels[i];
+  }
+  return 'INFO';
+}
 
-setInterval(() => {
-  const errorType = faker.helpers.arrayElement(['DatabaseError', 'NetworkError', 'ApplicationError']);
-  const errorMessage = faker.lorem.paragraphs(2)
+// Simulate user activity log
+function generateUserLog() {
+  const level = getRandomLogLevel();
   const timestamp = moment().toISOString();
-  console.error(`[${errorType}] ${timestamp} ${errorMessage}`);
-}, 20000);
+  const trace_id = faker.string.uuid();
 
-setInterval(() => {
-  const warningMessage = faker.lorem.paragraphs(2);
-  const timestamp = moment().toISOString();
-  const logType = faker.helpers.arrayElement(['WARN', 'INFO', 'DEBUG']);
-  console.log(`[${logType}] ${timestamp} ${warningMessage}`);
-}, 5000);
+  const log = {
+    timestamp,
+    trace_id,
+    level,
+    service: 'user-service'
+  };
+
+  if (level === 'INFO') {
+    const action = faker.helpers.arrayElement([
+      'registered',
+      'logged_in',
+      'logged_out',
+      'profile_updated',
+      'password_changed',
+      'email_verified',
+      '2FA_enabled',
+      '2FA_disabled',
+      'account_locked',
+      'account_unlocked',
+      'deleted_account',
+      'added_payment_method',
+      'removed_payment_method',
+      'subscribed_to_newsletter',
+      'unsubscribed_from_newsletter',
+      'accepted_terms_and_conditions',
+      'declined_privacy_policy'
+    ]);
+    Object.assign(log, {
+      message: `User ${action}`,
+      user_id: faker.string.uuid(),
+      username: faker.internet.userName(),
+      email: faker.internet.email(),
+      action
+    });
+  } else if (['ERROR', 'FATAL'].includes(level)) {
+    Object.assign(log, {
+      message: faker.hacker.phrase(),
+      error_type: faker.helpers.arrayElement(['DatabaseError', 'NetworkError', 'ApplicationError']),
+      user_id: faker.string.uuid()
+    });
+  } else {
+    log.message = faker.hacker.phrase();
+  }
+
+  const json = JSON.stringify(log);
+  if (['ERROR', 'FATAL'].includes(level)) console.error(json);
+  else console.log(json);
+}
+
+// Emit logs regularly
+setInterval(generateUserLog, 600);

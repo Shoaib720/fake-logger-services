@@ -1,28 +1,69 @@
-const {faker} = require('@faker-js/faker')
+const { faker } = require('@faker-js/faker');
 const moment = require('moment');
 
-setInterval(() => {
-  const status = faker.helpers.arrayElement(['placed', 'processing', 'shipped', 'delivered', 'cancelled']);
-  const orderID = faker.string.uuid();
-  const productID = faker.string.uuid();
-  const quantity = faker.number.int(50);
-  const customerID = faker.string.uuid();
-  const timestamp = moment().toISOString();
+// Weighted log levels
+function getRandomLogLevel() {
+  const levels = ['INFO', 'DEBUG', 'WARN', 'ERROR', 'FATAL'];
+  const weights = [0.6, 0.15, 0.15, 0.07, 0.03];
+  const total = weights.reduce((a, b) => a + b, 0);
+  const threshold = Math.random() * total;
 
-  const logMessage = `${timestamp} [Order Service] Order ${orderID} status updated to ${status}. Product ID: ${productID}, Quantity: ${quantity}, Customer ID: ${customerID}`;
-  console.log(logMessage);
-}, 500);
+  let cumulative = 0;
+  for (let i = 0; i < levels.length; i++) {
+    cumulative += weights[i];
+    if (threshold < cumulative) return levels[i];
+  }
+  return 'INFO';
+}
 
-setInterval(() => {
-  const errorType = faker.helpers.arrayElement(['DatabaseError', 'NetworkError', 'ApplicationError']);
-  const errorMessage = faker.lorem.paragraphs(2)
+// Log generator
+function generateOrderLog() {
+  const level = getRandomLogLevel();
   const timestamp = moment().toISOString();
-  console.error(`[${errorType}] ${timestamp} ${errorMessage}`);
-}, 4000);
+  const trace_id = faker.string.uuid();
 
-setInterval(() => {
-  const warningMessage = faker.lorem.paragraphs(2);
-  const timestamp = moment().toISOString();
-  const logType = faker.helpers.arrayElement(['WARN', 'INFO', 'DEBUG']);
-  console.log(`[${logType}] ${timestamp} ${warningMessage}`);
-}, 1000);
+  const baseLog = {
+    timestamp,
+    level,
+    trace_id,
+    service: 'order-service',
+  };
+
+  if (level === 'INFO') {
+    Object.assign(baseLog, {
+      message: `Order ${faker.string.uuid()} status updated`,
+      status: faker.helpers.arrayElement([
+        'placed',
+        'pending_payment',
+        'payment_failed',
+        'processing',
+        'packed',
+        'shipped',
+        'out_for_delivery',
+        'delivered',
+        'return_initiated',
+        'returned',
+        'refunded',
+        'cancelled',
+        'cancel_requested'
+      ]),
+      product_id: faker.string.uuid(),
+      quantity: faker.number.int({ min: 1, max: 100 }),
+      customer_id: faker.string.uuid()
+    });
+  } else if (['ERROR', 'FATAL'].includes(level)) {
+    Object.assign(baseLog, {
+      error_type: faker.helpers.arrayElement(['DatabaseError', 'NetworkError', 'ApplicationError']),
+      message: faker.hacker.phrase()
+    });
+  } else {
+    baseLog.message = faker.hacker.phrase();
+  }
+
+  const json = JSON.stringify(baseLog);
+  if (['ERROR', 'FATAL'].includes(level)) console.error(json);
+  else console.log(json);
+}
+
+// Emit logs at varying intervals
+setInterval(generateOrderLog, 200); // Every 300ms
