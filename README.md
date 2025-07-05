@@ -14,10 +14,10 @@ This repo contains 3 fake services `order`, `user`, and `product`. Each of these
 Build the docker image for each service using the common `Dockerfile`. Adjust the docker context to build images corresponding to each service
 
 ```bash
-docker build -t <image_name>:<image_tag> ./<service_folder>
+docker build -t <image_name>:<image_tag> ./<service_folder> -f ./Dockerfile
 
 # eg.
-docker build -t order_service:latest ./order-service
+docker build -t order_service:latest ./order-service -f ./Dockerfile
 ```
 
 ## Key Insights you can monitor
