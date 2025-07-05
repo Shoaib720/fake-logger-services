@@ -21,12 +21,14 @@ function generateOrderLog() {
   const level = getRandomLogLevel();
   const timestamp = moment().toISOString();
   const trace_id = faker.string.uuid();
+  const ip_address = faker.internet.ipv4();
 
   const baseLog = {
     timestamp,
     level,
     trace_id,
-    service: 'order-service',
+    service: '[Order Service]',
+    ip_address
   };
 
   if (level === 'INFO') {

@@ -21,12 +21,14 @@ function generateUserLog() {
   const level = getRandomLogLevel();
   const timestamp = moment().toISOString();
   const trace_id = faker.string.uuid();
+  const ip_address = faker.internet.ipv4();
 
   const log = {
     timestamp,
     trace_id,
     level,
-    service: 'user-service'
+    service: '[User Service]',
+    ip_address
   };
 
   if (level === 'INFO') {

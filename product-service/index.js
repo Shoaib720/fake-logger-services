@@ -26,7 +26,7 @@ function generateProductLog() {
     timestamp,
     trace_id,
     level,
-    service: 'product-service'
+    service: '[Product Service]'
   };
 
   if (level === 'INFO') {
